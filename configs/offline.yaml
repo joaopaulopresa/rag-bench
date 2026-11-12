@@ -1,0 +1,44 @@
+# Runs every stage without an API key or the network: your own folder of documents, a hashing
+# embedder, a word-overlap reranker, an extractive generator and a word-overlap judge. Used by the examples and by
+# continuous integration; the numbers it produces say nothing about real models.
+#
+#   uv run ragbench run configs/offline.yaml
+name: offline
+seed: 42
+
+corpus:
+  name: folder
+  params: { path: examples/handbook }
+
+retrieval:
+  chunkers:
+    - name: fixed
+      params: { max_tokens: 60, overlap: 0.15, tokenizer: words }
+    - name: recursive
+      params: { max_tokens: 60, tokenizer: words }
+    - name: context_header
+      label: context-header
+      params: { max_tokens: 60, tokenizer: words }
+  embedders:
+    - name: hashing
+      params: { dimensions: 256 }
+  search_modes: [dense, lexical, hybrid]
+  top_k: 5
+  metrics: [char_recall@3, char_precision@3, recall@5, ndcg@5, mrr@5]
+  primary_metric: char_recall@3
+
+rerank:
+  top_configs: 2
+  candidates: 10
+  rerankers:
+    - name: overlap
+
+answer:
+  top_configs: 2
+  questions: 12
+  context_k: 3
+  validation_sample: 0
+  generators:
+    - name: extractive
+  judge:
+    name: lexical

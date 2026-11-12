@@ -1,0 +1,106 @@
+# The demo experiment: LegalBench-RAG mini (582 questions, MAUD left out) on OpenRouter models.
+#
+#   docker compose up -d db
+#   uv run ragbench run configs/demo.yaml            # full run; a second run costs nothing
+#   uv run ragbench run configs/demo.yaml --limit 30 # development run on 30 questions
+#
+# Every value can be overridden: RAGBENCH_ANSWER__QUESTIONS=50 or --set answer.questions=50.
+name: demo
+seed: 42
+
+corpus:
+  name: legalbench_rag
+  params:
+    sources: [privacy_qa, contractnli, cuad]
+    mini: 194 # the upstream "mini" sample: 194 questions per source
+
+provider:
+  max_concurrency: 8
+  timeout_s: 120
+
+# Stage 1: 5 chunkers x 3 embedders x {dense, hybrid}, plus lexical once per chunker = 35.
+retrieval:
+  chunkers:
+    - name: fixed
+      params: { max_tokens: 512, overlap: 0.15 }
+    - name: recursive
+      params: { max_tokens: 512 }
+    - name: parent_child
+      label: parent-child
+      params: { parent_tokens: 1024, child_tokens: 128 }
+    - name: semantic
+      params:
+        embedder:
+          name: openrouter
+          params: { model: baai/bge-m3, dimensions: 1024 }
+        percentile: 90
+        max_tokens: 512
+    - name: context_header
+      label: context-header
+      params: { max_tokens: 512 }
+  # All three embedders are compared at 1,024 dimensions (the two larger models are trained
+  # for truncation), so index size and search cost are the same for each.
+  embedders:
+    - name: openrouter
+      params: { model: baai/bge-m3, dimensions: 1024 }
+    - name: openrouter
+      params:
+        model: qwen/qwen3-embedding-8b
+        dimensions: 1024
+        batch_size: 16 # its provider enforces a tokens-per-minute quota
+        query_prefix: "Instruct: Given a question about a legal document, retrieve the passages that answer it\nQuery: "
+    - name: openrouter
+      params: { model: openai/text-embedding-3-large, dimensions: 1024 }
+  search_modes: [dense, lexical, hybrid]
+  top_k: 10
+  metrics: [char_recall@5, char_precision@5, recall@5, recall@10, ndcg@10, mrr@10]
+  primary_metric: char_recall@5
+
+# Stage 2: the 5 best stage-1 configurations, each with every reranker.
+rerank:
+  top_configs: 5
+  candidates: 30
+  rerankers:
+    - name: openrouter
+      params: { model: cohere/rerank-5-fast }
+    - name: openrouter
+      params: { model: qwen/qwen3-reranker-8b }
+
+# Stage 3: the 3 best retrieval configurations x 5 small open-weight generators, on a
+# stratified sample of 200 questions, scored by a judge that is not one of the generators.
+answer:
+  top_configs: 3
+  questions: 200
+  context_k: 5
+  validation_sample: 50
+  generators:
+    - name: openrouter
+      params: &generator
+        model: google/gemma-4-31b-it
+        temperature: 0
+        max_tokens: 400
+        extra_body: { reasoning: { enabled: false } }
+    - name: openrouter
+      params: { <<: *generator, model: google/gemma-4-26b-a4b-it }
+    - name: openrouter
+      params: { <<: *generator, model: qwen/qwen3.8-27b }
+    - name: openrouter
+      params: { <<: *generator, model: mistralai/mistral-small-2603 }
+    - name: openrouter
+      params: { <<: *generator, model: ibm-granite/granite-4.2-8b }
+  judge:
+    name: llm
+    params:
+      generator:
+        name: openrouter
+        params:
+          model: deepseek/deepseek-v4.1-flash-1017
+          temperature: 0
+          max_tokens: 400
+          extra_body:
+            reasoning: { enabled: false }
+            response_format: { type: json_object }
+
+bootstrap:
+  samples: 2000
+  confidence: 0.95
