@@ -11,6 +11,7 @@ from ragbench.components import (
     generators,
     loaders,
     rerankers,
+    stores,
 )
 
-__all__ = ["caches", "chunkers", "embedders", "generators", "loaders", "rerankers"]
+__all__ = ["caches", "chunkers", "embedders", "generators", "loaders", "rerankers", "stores"]
