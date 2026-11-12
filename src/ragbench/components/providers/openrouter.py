@@ -21,6 +21,9 @@ DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_KEY_ENV = "OPENROUTER_API_KEY"
 _RETRYABLE_STATUS = frozenset({408, 409, 425, 429, 500, 502, 503, 504, 520, 522, 524, 529})
 
+_MAX_DELAY_S = 60.0
+_MAX_DETAIL_CHARS = 240
+
 logger = logging.getLogger(__name__)
 
 
@@ -64,7 +67,7 @@ class OpenRouterClient:
         last_error: _TransientError | None = None
         for attempt in range(attempts):
             if attempt:
-                delay = self._settings.backoff_s * 2 ** (attempt - 1)
+                delay = min(self._settings.backoff_s * 2 ** (attempt - 1), _MAX_DELAY_S)
                 if last_error is not None and last_error.retry_after is not None:
                     delay = max(delay, last_error.retry_after)
                 logger.warning(
@@ -102,7 +105,7 @@ class OpenRouterClient:
             data = None
         message = _error_message(data)
         if status >= 400 or message is not None:
-            detail = message or response.text[:300]
+            detail = (message or response.text)[:_MAX_DETAIL_CHARS]
             code = _error_code(data) or status
             if code in _RETRYABLE_STATUS:
                 retry_after = response.headers.get("retry-after", "")
