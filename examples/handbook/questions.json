@@ -1,0 +1,172 @@
+{
+  "tests": [
+    {
+      "query": "How many days per week may an employee work remotely?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "remote-work.md",
+          "span": [
+            102,
+            145
+          ],
+          "answer": "may work remotely up to three days per week"
+        }
+      ]
+    },
+    {
+      "query": "Which roles are not eligible for remote work?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "remote-work.md",
+          "span": [
+            147,
+            271
+          ],
+          "answer": "Roles that require physical presence, such as laboratory technicians and front-desk staff, are not eligible for remote work."
+        }
+      ]
+    },
+    {
+      "query": "How much is the allowance for a desk chair?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "remote-work.md",
+          "span": [
+            359,
+            431
+          ],
+          "answer": "Employees receive a one-time allowance of 250 euros to buy a desk chair."
+        }
+      ]
+    },
+    {
+      "query": "During which hours must remote employees be reachable?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "remote-work.md",
+          "span": [
+            509,
+            579
+          ],
+          "answer": "Remote employees must be reachable between 10:00 and 15:00 local time."
+        }
+      ]
+    },
+    {
+      "query": "How quickly must lost equipment be reported?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "remote-work.md",
+          "span": [
+            816,
+            896
+          ],
+          "answer": "Lost or stolen equipment must be reported to the IT help desk within four hours."
+        }
+      ]
+    },
+    {
+      "query": "In which class are flights reimbursed and how early must they be booked?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "expenses.md",
+          "span": [
+            73,
+            172
+          ],
+          "answer": "Flights are reimbursed in economy class and must be booked at least fourteen days before departure."
+        }
+      ]
+    },
+    {
+      "query": "What is the daily limit for meals on business trips?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "expenses.md",
+          "span": [
+            254,
+            328
+          ],
+          "answer": "During business trips the company reimburses meals up to 45 euros per day."
+        }
+      ]
+    },
+    {
+      "query": "What is the deadline for submitting an expense claim?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "expenses.md",
+          "span": [
+            391,
+            494
+          ],
+          "answer": "Expense claims must be submitted within thirty days of the expense, together with the original receipt."
+        }
+      ]
+    },
+    {
+      "query": "Which claims need approval from the department head?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "expenses.md",
+          "span": [
+            495,
+            592
+          ],
+          "answer": "Claims above 500 euros need written approval from the department head before the expense is made."
+        }
+      ]
+    },
+    {
+      "query": "How many days of annual leave do full-time employees get?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "leave.md",
+          "span": [
+            33,
+            124
+          ],
+          "answer": "Full-time employees are entitled to twenty-six days of paid annual leave per calendar year."
+        }
+      ]
+    },
+    {
+      "query": "When is a medical certificate required?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "leave.md",
+          "span": [
+            336,
+            413
+          ],
+          "answer": "A medical certificate is required from the fourth consecutive day of illness."
+        }
+      ]
+    },
+    {
+      "query": "How long is parental leave at full pay?",
+      "reviewed": true,
+      "snippets": [
+        {
+          "file_path": "leave.md",
+          "span": [
+            434,
+            505
+          ],
+          "answer": "Each parent may take up to sixteen weeks of parental leave at full pay."
+        }
+      ]
+    }
+  ]
+}
