@@ -41,6 +41,9 @@ ragbench = "ragbench.cli.app:main"
 Repository = "https://github.com/joaopaulopresa/rag-bench"
 
 [dependency-groups]
+demo = [
+    "playwright>=1.65.1",
+]
 dev = [
     "mypy>=1.11",
     "pre-commit>=3.7",
@@ -76,7 +79,7 @@ convention = "google"
 "examples/**" = ["D", "T20"]
 # HTML templates are long string literals; wrapping them hurts more than it helps.
 "src/ragbench/experiment/report_html.py" = ["E501"]
-"e2e/**" = ["D", "T20", "PLR"]
+"e2e/**" = ["D", "T20", "PLR", "S"]
 
 [tool.mypy]
 strict = true
