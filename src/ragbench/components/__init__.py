@@ -9,9 +9,21 @@ from ragbench.components import (
     chunkers,
     embedders,
     generators,
+    judges,
     loaders,
+    metrics,
     rerankers,
     stores,
 )
 
-__all__ = ["caches", "chunkers", "embedders", "generators", "loaders", "rerankers", "stores"]
+__all__ = [
+    "caches",
+    "chunkers",
+    "embedders",
+    "generators",
+    "judges",
+    "loaders",
+    "metrics",
+    "rerankers",
+    "stores",
+]
