@@ -104,13 +104,14 @@ def test_rank_configurations_averages_over_all_questions() -> None:
 
 def test_pick_winners_keeps_the_best_overall_or_the_best_of_each_chunker() -> None:
     from ragbench.core.config import ComponentConfig, PipelineConfig
+    from ragbench.core.types import SearchMode
     from ragbench.experiment.runner import pick_winners
 
-    def spec(chunker: str, mode: str) -> PipelineConfig:
+    def spec(chunker: str, mode: SearchMode) -> PipelineConfig:
         return PipelineConfig(
             chunker=ComponentConfig(name=chunker),
             embedder=ComponentConfig(name="hashing"),
-            search_mode=mode,  # type: ignore[arg-type]
+            search_mode=mode,
         )
 
     specs = {

@@ -263,9 +263,7 @@ def main() -> None:
     screenshots(report, out)
     shutil.rmtree(work)
     for file in sorted(out.iterdir()):
-        print(
-            f"{file.relative_to(ROOT) if file.is_relative_to(ROOT) else file}  {file.stat().st_size / 1e6:.2f} MB"
-        )
+        print(f"{file}  {file.stat().st_size / 1e6:.2f} MB")
 
 
 if __name__ == "__main__":
