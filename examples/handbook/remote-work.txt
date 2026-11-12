@@ -1,0 +1,17 @@
+# Remote Work Policy
+
+## Eligibility
+
+Employees who have completed their three-month probation period may work remotely up to three days per week. Roles that require physical presence, such as laboratory technicians and front-desk staff, are not eligible for remote work.
+
+## Equipment
+
+The company provides a laptop and one external monitor for remote work. Employees receive a one-time allowance of 250 euros to buy a desk chair. Personal devices must not be used to store customer data.
+
+## Working hours
+
+Remote employees must be reachable between 10:00 and 15:00 local time. Outside these core hours they may arrange their working time freely, provided they work eight hours per day.
+
+## Security
+
+A company VPN connection is mandatory whenever an employee connects to internal systems from outside the office. Lost or stolen equipment must be reported to the IT help desk within four hours.

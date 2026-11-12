@@ -1,0 +1,17 @@
+# Expense Policy
+
+## Travel
+
+Train travel is reimbursed in second class. Flights are reimbursed in economy class and must be booked at least fourteen days before departure. Taxi rides are reimbursed only when no public transport is available.
+
+## Meals
+
+During business trips the company reimburses meals up to 45 euros per day. Alcoholic drinks are never reimbursed.
+
+## Submitting claims
+
+Expense claims must be submitted within thirty days of the expense, together with the original receipt. Claims above 500 euros need written approval from the department head before the expense is made.
+
+## Payment
+
+Approved claims are paid with the next monthly salary run. Claims submitted after the twentieth day of a month are paid in the following month.

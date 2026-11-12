@@ -5,7 +5,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "remote-work.md",
+          "file_path": "remote-work.txt",
           "span": [
             102,
             145
@@ -19,7 +19,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "remote-work.md",
+          "file_path": "remote-work.txt",
           "span": [
             147,
             271
@@ -33,7 +33,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "remote-work.md",
+          "file_path": "remote-work.txt",
           "span": [
             359,
             431
@@ -47,7 +47,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "remote-work.md",
+          "file_path": "remote-work.txt",
           "span": [
             509,
             579
@@ -61,7 +61,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "remote-work.md",
+          "file_path": "remote-work.txt",
           "span": [
             816,
             896
@@ -75,7 +75,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "expenses.md",
+          "file_path": "expenses.txt",
           "span": [
             73,
             172
@@ -89,7 +89,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "expenses.md",
+          "file_path": "expenses.txt",
           "span": [
             254,
             328
@@ -103,7 +103,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "expenses.md",
+          "file_path": "expenses.txt",
           "span": [
             391,
             494
@@ -117,7 +117,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "expenses.md",
+          "file_path": "expenses.txt",
           "span": [
             495,
             592
@@ -131,7 +131,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "leave.md",
+          "file_path": "leave.txt",
           "span": [
             33,
             124
@@ -145,7 +145,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "leave.md",
+          "file_path": "leave.txt",
           "span": [
             336,
             413
@@ -159,7 +159,7 @@
       "reviewed": true,
       "snippets": [
         {
-          "file_path": "leave.md",
+          "file_path": "leave.txt",
           "span": [
             434,
             505
