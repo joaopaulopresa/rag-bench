@@ -1,0 +1,23 @@
+MUTUAL NON-DISCLOSURE AGREEMENT
+
+This Agreement is made between Acme Robotics Ltd. and Borealis Analytics Inc. Each party may disclose Confidential Information to the other.
+
+1. Definitions
+
+1.1 Confidential Information
+Confidential Information means any technical or business information disclosed by one party to the other. It does not include information that is publicly available.
+
+1.2 Representatives
+Representatives means the employees, officers and advisers of a party.
+
+2. Obligations
+
+2.1 Use
+The Receiving Party shall use the Confidential Information only for the Purpose. The Receiving Party shall not reverse engineer any prototype.
+
+2.2 Return
+On written request the Receiving Party shall return or destroy all Confidential Information within thirty days.
+
+3. Term
+
+This Agreement remains in force for five years from the Effective Date. Either party may terminate it with ninety days notice.

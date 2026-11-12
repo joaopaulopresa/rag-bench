@@ -66,13 +66,13 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF", "D", "T20", "PT", "RET", "PL"]
-ignore = ["D105", "D107", "PLR0913", "PLR0917", "PLR2004", "D203", "D213"]
+ignore = ["D301", "D105", "D107", "PLR0913", "PLR0917", "PLR2004", "D203", "D213"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D", "PLR", "T20", "RUF043", "PLC0415"]
+"tests/**" = ["D", "PLR", "T20", "RUF043", "PLC0415", "E501", "RUF001", "PT018"]
 "examples/**" = ["D", "T20"]
 "e2e/**" = ["D", "T20", "PLR"]
 
@@ -89,9 +89,9 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-testpaths = ["tests"]
+testpaths = ["tests", "src"]
 markers = ["integration: needs the PostgreSQL container (docker compose up -d db)"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers --doctest-modules"
 
 [tool.coverage.run]
 source = ["ragbench"]
