@@ -1,0 +1,47 @@
+{
+  "id": "gen-emb-1794508103-4JMORlX9EzP15ykGJDGW",
+  "object": "list",
+  "data": [
+    {
+      "object": "embedding",
+      "embedding": [
+        -0.040369,
+        0.036989,
+        -0.028964,
+        0.016096,
+        -0.035705,
+        -0.040746,
+        -0.055059,
+        -0.040897
+      ],
+      "index": 0
+    },
+    {
+      "object": "embedding",
+      "embedding": [
+        -0.049382,
+        0.003257,
+        -0.017493,
+        0.016562,
+        -0.003977,
+        -0.025983,
+        0.027882,
+        0.023646
+      ],
+      "index": 1
+    }
+  ],
+  "model": "parasail-bge-m3",
+  "usage": {
+    "prompt_tokens": 9,
+    "total_tokens": 9,
+    "cost": 9e-08,
+    "is_byok": false,
+    "cost_details": {
+      "upstream_inference_cost": 9e-08,
+      "upstream_inference_prompt_cost": 9e-08,
+      "upstream_inference_completions_cost": 0
+    }
+  },
+  "provider": "Parasail"
+}
