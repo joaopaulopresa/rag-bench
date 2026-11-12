@@ -30,7 +30,7 @@ _STYLE = """
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--page); color: var(--ink);
   font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
+main { max-width: 1240px; margin: 0 auto; padding: 32px 16px 64px; }
 h1 { font-size: 26px; margin: 0 0 4px; }
 h2 { font-size: 19px; margin: 40px 0 4px; }
 p { margin: 6px 0; } .lede { color: var(--ink-2); max-width: 78ch; }
@@ -49,11 +49,12 @@ code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: va
 .scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 13.5px;
   font-variant-numeric: tabular-nums; }
-th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--grid);
+th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--grid);
   white-space: nowrap; }
 th { color: var(--ink-2); font-weight: 600; border-bottom: 1px solid var(--axis); }
 th:first-child, td:first-child, th.text, td.text { text-align: left; }
-td.wrap { white-space: normal; min-width: 220px; }
+td.wrap { white-space: normal; min-width: 170px; max-width: 250px; }
+.heat th { white-space: normal; vertical-align: bottom; }
 tr.chosen td { font-weight: 650; }
 .rank { color: var(--muted); }
 .bar { display: flex; align-items: center; gap: 8px; justify-content: flex-start; }
@@ -103,14 +104,14 @@ def _table(headers: Sequence[str], rows: Iterable[Sequence[str]], *, chosen: int
 
 
 def _bar(value: float, largest: float, low: object = None, high: object = None) -> str:
-    width = 0 if largest <= 0 else round(110 * value / largest)
+    width = 0 if largest <= 0 else round(80 * value / largest)
     interval = (
         "" if _missing(low) else f' <span class="ci">{_percent(low)} to {_percent(high)}</span>'
     )
     return f'<div class="bar"><i style="width:{width}px"></i><span>{_percent(value)}</span>{interval}</div>'
 
 
-def _ticks(largest: float, count: int = 4) -> list[float]:
+def _ticks(largest: float, count: int = 5) -> list[float]:
     if largest <= 0:
         return [0.0, 1.0]
     raw = largest / count
@@ -162,8 +163,12 @@ def _scatter(answers: pl.DataFrame, chosen_key: str) -> str:
         f'<text class="title" x="{left}" y="{height - 6}">Cost per 1,000 answers (USD)</text>'
         f'<text class="title" x="{left}" y="{top - 4}">Correctness (judge), 95% interval</text>'
     )
-    placed: list[float] = []
-    for row in sorted(rows, key=lambda item: -item["correctness"]):
+    placed: list[tuple[float, float]] = []
+    # The recommended point is drawn first so that its label always has room.
+    ordered = sorted(
+        rows, key=lambda item: (item["config_key"] != chosen_key, -item["correctness"])
+    )
+    for row in ordered:
         cx, cy = x(row["cost_per_1k_answers_usd"]), y(row["correctness"])
         tooltip = (
             f"{row['configuration']}\ncorrectness {_percent(row['correctness'])} "
@@ -172,25 +177,28 @@ def _scatter(answers: pl.DataFrame, chosen_key: str) -> str:
             f"median {row['latency_p50_s']:.1f}s"
         )
         is_chosen = row["config_key"] == chosen_key
+        ring = (
+            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="11" fill="none" stroke="var(--ink)" '
+            'stroke-width="2"/>'
+            if is_chosen
+            else ""
+        )
         parts.append(
             f"<g><title>{escape(tooltip)}</title>"
             f'<line x1="{cx:.1f}" x2="{cx:.1f}" y1="{y(row["correctness_low"]):.1f}" '
             f'y2="{y(row["correctness_high"]):.1f}" stroke="var(--axis)" stroke-width="2"/>'
-            + (
-                f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="11" fill="none" stroke="var(--ink)" '
-                'stroke-width="2"/>'
-                if is_chosen
-                else ""
-            )
-            + f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="6" fill="{colour[row["retrieval"]]}" '
+            f"{ring}"
+            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="6" fill="{colour[row["retrieval"]]}" '
             'stroke="var(--surface)" stroke-width="2"/>'
         )
-        label_y = cy + 4
-        if all(abs(label_y - other) >= 13 for other in placed) or is_chosen:
-            placed.append(label_y)
+        # A label is drawn only where it does not sit on top of one already placed; the
+        # legend, the tooltip and the table below carry the rest.
+        free = all(abs(cy - py) >= 14 or abs(cx - px) >= 190 for px, py in placed)
+        if free:
+            placed.append((cx, cy))
             suffix = " (recommended)" if is_chosen else ""
             parts.append(
-                f'<text class="name" x="{cx + 15:.1f}" y="{label_y:.1f}">'
+                f'<text class="name" x="{cx + (20 if is_chosen else 14):.1f}" y="{cy + 4:.1f}">'
                 f"{escape(row['generator'])}{suffix}</text>"
             )
         parts.append("</g>")
@@ -265,7 +273,7 @@ def _retrieval_section(report: Report) -> str:
     return (
         f"<h2>Stage 1 - Retrieval without a reranker</h2>"
         f'<p class="lede">{frame.height} configurations on {int(str(frame["questions"].max()))} questions. '
-        f"The grid shows <code>{escape(primary)}</code> in percent; darker is better. Lexical "
+        f"The grid shows <code>{escape(primary)}</code> in percent; a stronger blue is better. Lexical "
         "search does not use embeddings, so it has one column.</p>"
         f'<div class="card">{_heatmap(frame, primary)}</div>'
         f'<div class="card">{_table(headers, rows)}</div>'
@@ -292,8 +300,7 @@ def _reranking_section(report: Report) -> str:
                 escape(row["configuration"]),
                 _percent(row[primary]),
                 _percent(row["base"]),
-                gain,
-                f'<span class="tag">{verdict}</span>' if verdict else "",
+                gain + (f' <span class="tag">{verdict}</span>' if verdict else ""),
                 _money(row["cost_per_1k_queries_usd"], 2),
                 f"{row['latency_ms']:.0f} ms",
             ]
@@ -304,7 +311,6 @@ def _reranking_section(report: Report) -> str:
         primary,
         "Without reranker",
         "Gain (paired 95% interval)",
-        "",
         "$ / 1k queries",
         "Median latency",
     ]
@@ -336,7 +342,8 @@ def _answers_section(report: Report) -> str:
         rows.append(
             [
                 f'<span class="rank">{position + 1}</span>',
-                escape(row["configuration"]),
+                f"<strong>{escape(row['generator'])}</strong><br>"
+                f'<span class="ci">{escape(row["retrieval"])}</span>',
                 _bar(row["correctness"], 1.0, row["correctness_low"], row["correctness_high"]),
                 gap
                 + (' <span class="tag">tied</span>' if row["tied_with_best"] and position else ""),
@@ -345,30 +352,30 @@ def _answers_section(report: Report) -> str:
                 _percent(row["cited_gold"]),
                 _percent(row["gold_in_context"]),
                 _money(row["cost_per_1k_answers_usd"]),
-                f"{row['latency_p50_s']:.1f}s",
-                f"{row['latency_p95_s']:.1f}s",
+                f"{row['latency_p50_s']:.1f}s / {row['latency_p95_s']:.1f}s",
             ]
         )
     headers = [
         "#",
-        "Configuration",
+        "Generator and retrieval",
         "Correctness (95% interval)",
         "Gap to best (paired)",
-        "Faithfulness",
+        "Faithful",
         "Citation",
-        "Cited passages that are gold",
-        "Gold in context",
+        "Cited = gold",
+        "Gold retrieved",
         "$ / 1k answers",
-        "Latency p50",
-        "p95",
+        "Latency p50 / p95",
     ]
     return (
         "<h2>Stage 3 - Answers</h2>"
         f'<p class="lede">The best retrieval configurations, each with every generator, on '
         f"{int(str(frame['questions'].max()))} questions. A judge model scores each answer 0, 1 or 2 on "
         "correctness, faithfulness and citation; scores are shown as a share of the maximum. "
-        "Cost and latency are those of retrieval plus generation, as billed and timed when each "
-        "call was first made. Hover a dot for details.</p>"
+        "<em>Cited = gold</em> is the share of cited passages that contain gold evidence; "
+        "<em>Gold retrieved</em> is the share of questions whose context held any. Cost and "
+        "latency are those of retrieval plus generation, as billed and timed when each call "
+        "was first made. Hover a dot for details.</p>"
         f'<div class="card">{_scatter(frame, chosen_key)}</div>'
         f'<div class="card">{_table(headers, rows, chosen=chosen)}</div>'
     )
