@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable, Mapping
 from pathlib import Path
 
 import httpx
@@ -33,7 +33,7 @@ class Replay:
         self.requests: list[httpx.Request] = []
         self.routes: dict[str, list[httpx.Response]] = {}
 
-    def add(self, path: str, fixture: str | dict[str, object], *, status: int = 200) -> None:
+    def add(self, path: str, fixture: str | Mapping[str, object], *, status: int = 200) -> None:
         body = (
             json.loads((FIXTURES / "openrouter" / fixture).read_text())
             if isinstance(fixture, str)
