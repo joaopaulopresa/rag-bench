@@ -32,6 +32,9 @@ class ComponentConfig(_Model):
     params: dict[str, JsonValue] = Field(
         default_factory=dict, description="Keyword parameters of the implementation."
     )
+    label: str | None = Field(
+        default=None, description="Name shown in reports; does not affect results."
+    )
 
     @property
     def key(self) -> str:
@@ -39,13 +42,12 @@ class ComponentConfig(_Model):
         return f"{self.name}-{stable_hash(self.params, length=8)}" if self.params else self.name
 
     @property
-    def label(self) -> str:
-        """Human-readable label: the ``label`` or ``model`` parameter if present, else the name."""
-        for field in ("label", "model"):
-            value = self.params.get(field)
-            if isinstance(value, str):
-                return value
-        return self.name
+    def display(self) -> str:
+        """Name shown in tables: ``label`` if set, else the model's short name, else the name."""
+        if self.label:
+            return self.label
+        model = self.params.get("model")
+        return model.rsplit("/", 1)[-1] if isinstance(model, str) else self.name
 
 
 class ProviderConfig(_Model):
@@ -53,9 +55,11 @@ class ProviderConfig(_Model):
 
     timeout_s: float = Field(default=120.0, gt=0, description="Timeout of one request.")
     max_concurrency: int = Field(default=8, ge=1, description="Requests in flight at once.")
-    max_retries: int = Field(default=5, ge=0, description="Retries after a transient error.")
+    max_retries: int = Field(default=8, ge=0, description="Retries after a transient error.")
     backoff_s: float = Field(
-        default=1.0, ge=0, description="First retry delay; doubles on each further retry."
+        default=2.0,
+        ge=0,
+        description="First retry delay; doubles on each further retry, up to 60 seconds.",
     )
 
 
@@ -232,9 +236,26 @@ class PipelineConfig(_Model):
         return self
 
     @property
-    def retrieval_key(self) -> str:
-        """Stable identifier of the retrieval part (everything except the generator)."""
-        return stable_hash(self.model_dump(mode="json", exclude={"generator"}), length=12)
+    def key(self) -> str:
+        """Stable identifier of the whole pipeline configuration. Labels do not change it."""
+        data = self.model_dump(mode="json")
+        for part in ("chunker", "embedder", "reranker", "generator"):
+            if data[part] is not None:
+                data[part].pop("label")
+        return stable_hash(data, length=12)
+
+    @property
+    def display(self) -> str:
+        """One-line description for tables, for example ``recursive | bge-m3 | hybrid``."""
+        parts = [self.chunker.display]
+        if self.embedder is not None:
+            parts.append(self.embedder.display)
+        parts.append(self.search_mode)
+        if self.reranker is not None:
+            parts.append(f"+ {self.reranker.display}")
+        if self.generator is not None:
+            parts.append(f"-> {self.generator.display}")
+        return " | ".join(parts)
 
 
 def format_validation_error(error: ValidationError) -> str:
