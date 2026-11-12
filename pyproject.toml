@@ -1,0 +1,102 @@
+[project]
+name = "ragbench"
+version = "0.1.0"
+description = "Reproducible RAG benchmark on PostgreSQL and OpenRouter: chunking, embeddings, search modes, rerankers and small open-source generators."
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "João Paulo" }]
+keywords = ["rag", "retrieval", "benchmark", "pgvector", "openrouter", "langgraph"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "httpx>=0.27",
+    "langgraph>=0.2",
+    "numpy>=1.26",
+    "pgvector>=0.3",
+    "plotly>=5.22",
+    "polars>=1.0",
+    "psycopg[binary,pool]>=3.2",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "rich>=13.7",
+    "tiktoken>=0.7",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+pdf = ["pypdf>=4.2"]
+
+[project.scripts]
+ragbench = "ragbench.cli.app:main"
+
+[project.urls]
+Repository = "https://github.com/joaopaulopresa/rag-bench"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.11",
+    "pre-commit>=3.7",
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "ranx>=0.3.20",
+    "ruff>=0.6",
+    "types-pyyaml>=6.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ragbench"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF", "D", "T20", "PT", "RET", "PL"]
+ignore = ["D105", "D107", "PLR0913", "PLR2004", "D203", "D213"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "PLR", "T20"]
+"examples/**" = ["D", "T20"]
+"e2e/**" = ["D", "T20", "PLR"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+files = ["src", "tests", "examples"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["ranx.*", "plotly.*", "pgvector.*", "pypdf.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = ["integration: needs the PostgreSQL container (docker compose up -d db)"]
+addopts = "-ra --strict-markers"
+
+[tool.coverage.run]
+source = ["ragbench"]
+branch = true
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "\\.\\.\\.$"]
