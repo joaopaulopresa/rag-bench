@@ -163,3 +163,56 @@ def test_prompt_numbers_passages_and_citations_are_parsed() -> None:
     )
     assert cited_passages("The Tenant [1][2]. See [3] and [0].", 2) == ([1, 2], [0, 3])
     assert cited_passages("No markers here.", 2) == ([], [])
+
+
+async def test_evaluate_retrieval_and_judge_answers(
+    store: PostgresStore, resources: Resources
+) -> None:
+    from ragbench.components.judges import LexicalJudge
+    from ragbench.core.types import Question, Span
+    from ragbench.pipeline import JudgeItem, evaluate_retrieval, judge_answers
+
+    pipeline = build_pipeline(
+        config(search_mode="lexical", embedder=None, generator=None),
+        resources=resources,
+        store=store,
+        collection="tiny",
+    )
+    await pipeline.index(DOCUMENTS)
+    lease = DOCUMENTS[1].text
+    deposit = lease.index("a deposit equal to three months")
+    questions = [
+        Question(
+            "q1",
+            "deposit equal to three months of rent",
+            "lease.txt",
+            (Span(deposit, deposit + 31),),
+        ),
+        Question("q2", "zebra giraffe elephant", "lease.txt", (Span(0, 7),)),
+    ]
+
+    evaluation = await evaluate_retrieval(
+        pipeline, questions, metrics=["hit@3", "mrr@3", "char_recall@3"]
+    )
+
+    assert [score.question_id for score in evaluation.scores] == ["q1", "q2"]
+    assert evaluation.scores[0].metrics == {"hit@3": 1.0, "mrr@3": 1.0, "char_recall@3": 1.0}
+    assert evaluation.scores[0].retrieved[0].startswith("lease.txt:")
+    assert evaluation.scores[1].metrics == {"hit@3": 0.0, "mrr@3": 0.0, "char_recall@3": 0.0}
+    assert evaluation.means() == {"hit@3": 0.5, "mrr@3": 0.5, "char_recall@3": 0.5}
+    assert (await evaluate_retrieval(pipeline, [])).means() == {}
+
+    passage = "The Tenant shall pay a deposit equal to three months of rent."
+    verdicts = await judge_answers(
+        LexicalJudge(),
+        [
+            JudgeItem("How much is the deposit?", f"{passage} [1]", (passage,), (passage,)),
+            JudgeItem(
+                "How much is the deposit?", "Seventeen purple dragons.", (passage,), (passage,)
+            ),
+        ],
+    )
+    assert [verdict.scores() for verdict in verdicts] == [
+        {"correctness": 2, "faithfulness": 2, "citation": 2},
+        {"correctness": 0, "faithfulness": 0, "citation": 0},
+    ]

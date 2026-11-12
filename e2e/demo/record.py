@@ -215,7 +215,11 @@ def main() -> None:
     full_tour = [
         ("RAG benchmark report", "The report opens with one recommended configuration.", 6.0),
         ("Stage 3", "Quality against cost: every generator on the best retrieval setups.", 8.0),
-        ("Judge validation", "The judge's scores are checked against human labels.", 5.0),
+        (
+            "Judge validation",
+            "Judge scores stay marked unverified until a person labels them.",
+            5.0,
+        ),
         ("Stage 2", "Rerankers: gain over the same questions, with a paired interval.", 6.0),
         ("Stage 1", "Chunking x embedding x search mode, on all questions.", 8.0),
         ("By source", "The best setups, broken down by document collection.", 5.0),
