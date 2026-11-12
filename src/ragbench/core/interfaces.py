@@ -20,6 +20,7 @@ from ragbench.core.types import (
     Message,
     Question,
     Reranking,
+    Retrieval,
     RetrievalSample,
     RetrievedChunk,
     SearchMode,
@@ -172,8 +173,8 @@ class Store(Protocol):
 class Retriever(Protocol):
     """Answers a query with ranked passages."""
 
-    async def retrieve(self, query: str, *, top_k: int) -> list[RetrievedChunk]:
-        """Return the ``top_k`` best passages for ``query``, best first."""
+    async def retrieve(self, query: str, *, top_k: int) -> Retrieval:
+        """Return the ``top_k`` best passages for ``query``, best first, with their cost."""
         ...
 
 

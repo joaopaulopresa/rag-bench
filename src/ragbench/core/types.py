@@ -221,6 +221,18 @@ class Usage:
         return 0.0 if self.cached else self.cost_usd
 
 
+#: Usage of something that cost nothing and called no model.
+NO_USAGE = Usage(cached=True)
+
+
+@dataclass(frozen=True, slots=True)
+class Retrieval:
+    """Result of one retrieval: ranked passages plus what finding them cost."""
+
+    chunks: tuple[RetrievedChunk, ...]
+    usage: Usage = NO_USAGE
+
+
 @dataclass(frozen=True, slots=True)
 class Message:
     """One chat message."""
