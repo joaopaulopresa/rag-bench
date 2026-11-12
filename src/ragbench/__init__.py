@@ -102,7 +102,7 @@ from ragbench.pipeline import (
 __version__ = version("ragbench")
 
 
-def get_chunker(name: str, resources: Resources | None = None, **params: object) -> Chunker:
+def get_chunker(name: str, *, resources: Resources | None = None, **params: object) -> Chunker:
     """Build a registered chunker by name.
 
     Args:
