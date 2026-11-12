@@ -134,7 +134,7 @@ def _summary_table(summary: RunSummary) -> Table:
     table = Table(title=f"Run {summary.run_id}", title_justify="left")
     for column in ("Stage", "Configurations", "Evaluated now", "Reused", "Failed"):
         table.add_column(column, justify="left" if column == "Stage" else "right")
-    table.add_column("Cost when first made", justify="right")
+    table.add_column("Cost without cache", justify="right")
     table.add_column("Paid now", justify="right")
     for stage, totals in sorted(summary.stages.items()):
         table.add_row(

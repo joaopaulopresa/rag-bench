@@ -121,7 +121,7 @@ async def generate_questions(
     ]
     random.Random(seed).shuffle(passages)
     drafts: list[DraftQuestion] = []
-    usage = Usage(cached=True)
+    usage = Usage()
     for document, span in passages[:count]:
         passage = document.text[span.start : span.end]
         prompt = f"Document: {document.title or document.id}\n\nPassage:\n{passage}"

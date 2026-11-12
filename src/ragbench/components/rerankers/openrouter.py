@@ -58,7 +58,7 @@ class OpenRouterReranker:
             ProviderError: If the API fails or does not score every passage.
         """
         if not texts:
-            return Reranking(scores=(), usage=Usage(cached=True))
+            return Reranking(scores=(), usage=Usage())
         documents = [text[: self._max_chars] for text in texts]
         key = stable_hash(
             {

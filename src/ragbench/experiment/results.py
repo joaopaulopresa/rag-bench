@@ -232,6 +232,24 @@ class ResultsRepository:
             rows = await cursor.fetchall()
         return {str(row[0]) for row in rows}
 
+    async def stored_cost(self, run_id: str, stage: int, config_key: str) -> float:
+        """Return the summed cost recorded in the stored results of one configuration."""
+        await self._ensure_schema()
+        fields = ("cost_usd", "generation_cost_usd", "retrieval_cost_usd", "judge_cost_usd")
+        total = sql.SQL(" + ").join(
+            sql.SQL("COALESCE((data->>{})::float8, 0)").format(sql.Literal(name)) for name in fields
+        )
+        async with self._database.connection() as connection:
+            cursor = await connection.execute(
+                sql.SQL(
+                    "SELECT COALESCE(sum({}), 0) FROM {} "
+                    "WHERE run_id = %s AND stage = %s AND config_key = %s"
+                ).format(total, self._tables["results"]),
+                (run_id, stage, config_key),
+            )
+            row = await cursor.fetchone()
+        return float(str(row[0])) if row else 0.0
+
     async def save_result(
         self, run_id: str, stage: int, config_key: str, question_id: str, data: Mapping[str, object]
     ) -> None:

@@ -79,8 +79,10 @@ class StageSummary:
         evaluated: Question results computed now.
         reused: Question results that were already stored.
         failed: Questions whose provider call failed; they are retried by the next run.
-        cost_usd: What the stage's model calls cost when they were first made.
-        paid_usd: What was actually paid now (zero for cached calls).
+        cost_usd: Sum of the cost of every result, as if nothing had been cached. A call that
+            several configurations share (the same reranking feeding five generators) is
+            counted once per configuration, so this is an upper bound, not a bill.
+        paid_usd: What was actually paid now. Cached calls add nothing.
     """
 
     configurations: int = 0
@@ -121,7 +123,7 @@ class RunSummary:
 
     @property
     def cost_usd(self) -> float:
-        """What all model calls of the run cost when first made."""
+        """Cost of every result as if nothing had been cached; see `StageSummary.cost_usd`."""
         return sum(stage.cost_usd for stage in self.stages.values())
 
     @property
@@ -416,6 +418,8 @@ class Experiment:
         pending = [question for question in questions if question.id not in done]
         reused = len(questions) - len(pending)
         summary.reused += reused
+        if reused:
+            summary.cost_usd += await results.stored_cost(self.run_id, stage, spec.key)
         self._progress.advance(reused)
 
         async def one(question: Question) -> None:

@@ -129,7 +129,7 @@ class LlmJudge:
             gold=gold,
             context=[text[: self._max_passage_chars] for text in context],
         )
-        usage = Usage(cached=True)
+        usage = Usage()
         reply = ""
         for attempt in range(_MAX_ATTEMPTS):
             # A different reminder gives a different cache key, so a malformed cached reply

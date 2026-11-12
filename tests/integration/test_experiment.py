@@ -92,6 +92,7 @@ async def test_three_stages_then_a_second_run_reuses_everything(database: Databa
         ANSWERS: 24,
     }
     assert second.paid_usd == 0.0
+    assert second.cost_usd == pytest.approx(first.cost_usd), "stored costs are reported again"
     assert record.finished_at is not None
     assert record.corpus["questions_by_source"] == {"handbook": 12}
     assert record.config["name"] == "offline"

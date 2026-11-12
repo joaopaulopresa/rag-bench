@@ -174,21 +174,23 @@ class RetrievedChunk:
 
 @dataclass(frozen=True, slots=True)
 class Usage:
-    """Cost and timing of one model call.
+    """Cost and timing of one model call, or of several added together.
 
     Attributes:
         prompt_tokens: Input tokens billed.
         completion_tokens: Output tokens billed.
-        cost_usd: Price of the call when it was first made.
-        latency_s: Wall-clock seconds of the original call.
-        cached: Whether this result was served from the cache (nothing was paid now).
+        cost_usd: Price of the calls when they were first made. For a result served from the
+            cache this is what the original call cost.
+        latency_s: Wall-clock seconds of the original calls.
+        paid_usd: Money actually spent now. Calls served from the cache add nothing to it, so
+            a sum of a cached and a fresh call pays only for the fresh one.
     """
 
     prompt_tokens: int = 0
     completion_tokens: int = 0
     cost_usd: float = 0.0
     latency_s: float = 0.0
-    cached: bool = False
+    paid_usd: float = 0.0
 
     def __add__(self, other: Usage) -> Usage:
         return Usage(
@@ -196,12 +198,18 @@ class Usage:
             completion_tokens=self.completion_tokens + other.completion_tokens,
             cost_usd=self.cost_usd + other.cost_usd,
             latency_s=self.latency_s + other.latency_s,
-            cached=self.cached and other.cached,
+            paid_usd=self.paid_usd + other.paid_usd,
         )
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, object], *, cached: bool) -> Usage:
-        """Read the usage fields stored in a cache payload."""
+        """Read the usage fields stored in a cache payload.
+
+        Args:
+            payload: The stored response.
+            cached: Whether the response was read from the cache (``True``) or has just been
+                paid for (``False``).
+        """
 
         def number(name: str) -> float:
             value = payload.get(name, 0)
@@ -212,17 +220,17 @@ class Usage:
             completion_tokens=int(number("completion_tokens")),
             cost_usd=number("cost_usd"),
             latency_s=number("latency_s"),
-            cached=cached,
+            paid_usd=0.0 if cached else number("cost_usd"),
         )
 
     @property
-    def paid_usd(self) -> float:
-        """Money spent by this call now: zero when it came from the cache."""
-        return 0.0 if self.cached else self.cost_usd
+    def cached(self) -> bool:
+        """Whether nothing was paid now: every call behind this usage came from the cache."""
+        return self.paid_usd == 0.0
 
 
 #: Usage of something that cost nothing and called no model.
-NO_USAGE = Usage(cached=True)
+NO_USAGE = Usage()
 
 
 @dataclass(frozen=True, slots=True)

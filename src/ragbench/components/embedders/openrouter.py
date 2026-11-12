@@ -92,7 +92,7 @@ class OpenRouterEmbedder:
         keys = [self._cache_key(text) for text in inputs]
         cache = self._resources.cache
         entries = await cache.get_many(list(dict.fromkeys(keys)))
-        usage = Usage(cached=True)
+        usage = Usage()
         for key in keys:
             if key in entries:
                 usage += Usage.from_payload(entries[key].payload, cached=True)

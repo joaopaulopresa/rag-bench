@@ -161,3 +161,38 @@ async def test_missing_api_key_is_a_config_error(resources: Resources) -> None:
     resources.api_keys = {}
     with pytest.raises(ConfigError, match="OPENROUTER_API_KEY is not set"):
         await OpenRouterGenerator(resources, model="m").generate([Message("user", "hi")])
+
+
+def test_adding_a_cached_and_a_fresh_call_pays_only_for_the_fresh_one() -> None:
+    from ragbench.core.types import NO_USAGE, Usage
+
+    cached_rerank = Usage.from_payload({"cost_usd": 0.003, "latency_s": 1.0}, cached=True)
+    fresh_generation = Usage.from_payload({"cost_usd": 0.0005, "latency_s": 2.0}, cached=False)
+    total = cached_rerank + fresh_generation + NO_USAGE
+
+    assert total.cost_usd == pytest.approx(0.0035), "what the answer costs with nothing cached"
+    assert total.paid_usd == pytest.approx(0.0005), "what was spent now"
+    assert total.latency_s == pytest.approx(3.0)
+    assert not total.cached
+    assert (cached_rerank + NO_USAGE).cached
+    assert NO_USAGE.cached
+    assert NO_USAGE.paid_usd == 0.0
+
+
+async def test_a_partly_cached_embedding_batch_pays_only_for_the_new_texts(
+    resources: Resources, replay: Replay
+) -> None:
+    for vector in ([1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]):
+        reply = {
+            "data": [{"index": 0, "embedding": vector}],
+            "usage": {"prompt_tokens": 3, "cost": 3e-8},
+        }
+        replay.add("embeddings", reply)
+    embedder = OpenRouterEmbedder(resources, model="baai/bge-m3", dimensions=4, batch_size=1)
+    first = await embedder.embed(["hello world"])
+    both = await embedder.embed(["hello world", "second text"])
+
+    assert both.usage.cost_usd == pytest.approx(first.usage.cost_usd + both.usage.paid_usd)
+    assert both.usage.paid_usd == pytest.approx(3e-8)
+    assert both.usage.cost_usd == pytest.approx(6e-8)
+    assert len(replay.requests) == 2
