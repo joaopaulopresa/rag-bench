@@ -56,20 +56,27 @@ retrieval:
   metrics: [char_recall@5, char_precision@5, recall@5, recall@10, ndcg@10, mrr@10]
   primary_metric: char_recall@5
 
-# Stage 2: the 5 best stage-1 configurations, each with every reranker.
+# Stage 2: the best stage-1 configuration of each of the 3 best chunkers, with every
+# reranker. Rerankers are billed per token of every candidate: measured on this corpus, about
+# $0.30 (Cohere) and $3.30 (Qwen) per 1,000 queries at 30 candidates. The stage therefore runs
+# on the same stratified sample of 200 questions as stage 3, with 20 candidates.
 rerank:
-  top_configs: 5
-  candidates: 30
+  top_configs: 3
+  diversify: chunker
+  candidates: 20
+  questions: 200
   rerankers:
     - name: openrouter
       params: { model: cohere/rerank-5-fast }
     - name: openrouter
       params: { model: qwen/qwen3-reranker-8b }
 
-# Stage 3: the 3 best retrieval configurations x 5 small open-weight generators, on a
-# stratified sample of 200 questions, scored by a judge that is not one of the generators.
+# Stage 3: the best retrieval configuration of each of the 3 best chunkers x 5 small
+# open-weight generators, on a stratified sample of 200 questions, scored by a judge that is
+# not one of the generators.
 answer:
   top_configs: 3
+  diversify: chunker
   questions: 200
   context_k: 5
   validation_sample: 50
