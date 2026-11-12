@@ -1,0 +1,23 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+dist/
+.pytest_cache/
+test-results/
+playwright-report/
+.ruff_cache/
+*.tsbuildinfo
+coverage/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+# downloaded datasets, run outputs and generated reports
+.data/
+runs/
+reports/
