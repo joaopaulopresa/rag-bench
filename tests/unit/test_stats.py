@@ -100,3 +100,26 @@ def test_rank_configurations_averages_over_all_questions() -> None:
         ("c", 0.5),
     ]
     assert rank_configurations(rows, []) == []
+
+
+def test_pick_winners_keeps_the_best_overall_or_the_best_of_each_chunker() -> None:
+    from ragbench.core.config import ComponentConfig, PipelineConfig
+    from ragbench.experiment.runner import pick_winners
+
+    def spec(chunker: str, mode: str) -> PipelineConfig:
+        return PipelineConfig(
+            chunker=ComponentConfig(name=chunker),
+            embedder=ComponentConfig(name="hashing"),
+            search_mode=mode,  # type: ignore[arg-type]
+        )
+
+    specs = {
+        "a": spec("fixed", "dense"),
+        "b": spec("fixed", "hybrid"),
+        "c": spec("recursive", "dense"),
+        "d": spec("semantic", "dense"),
+    }
+    ranking = [("a", 0.9), ("b", 0.8), ("c", 0.7), ("d", 0.6)]
+    assert pick_winners(ranking, specs, 2, "none") == [specs["a"], specs["b"]]
+    assert pick_winners(ranking, specs, 2, "chunker") == [specs["a"], specs["c"]]
+    assert pick_winners(ranking, specs, 9, "chunker") == [specs["a"], specs["c"], specs["d"]]

@@ -213,6 +213,35 @@ def rank_configurations(
     return sorted(means.items(), key=lambda item: (-item[1], item[0]))
 
 
+def pick_winners(
+    ranking: Sequence[tuple[str, float]],
+    specs: Mapping[str, PipelineConfig],
+    count: int,
+    diversify: str,
+) -> list[PipelineConfig]:
+    """Return the ``count`` configurations a stage carries over to the next one.
+
+    Args:
+        ranking: ``(config_key, mean)`` pairs, best first.
+        specs: The configuration behind each key.
+        count: How many to keep.
+        diversify: ``none`` keeps the best ``count``. ``chunker`` keeps the best configuration
+            of each chunker, so the winners differ in more than the embedding model.
+    """
+    winners: list[PipelineConfig] = []
+    seen: set[str] = set()
+    for key, _ in ranking:
+        spec = specs[key]
+        if diversify == "chunker":
+            if spec.chunker.key in seen:
+                continue
+            seen.add(spec.chunker.key)
+        winners.append(spec)
+        if len(winners) == count:
+            break
+    return winners
+
+
 class Experiment:
     """One experiment: a configuration plus the live dependencies to run it.
 
@@ -272,34 +301,49 @@ class Experiment:
         )
         ranking = await self._ranking([RETRIEVAL], questions)
 
+        by_source: dict[str, list[Question]] = {}
+        for question in questions:
+            by_source.setdefault(question.source, []).append(question)
+
         candidates = list(retrieval_specs)
         if config.rerank.rerankers:
-            winners = [key for key, _ in ranking[: config.rerank.top_configs]]
-            by_key = {spec.key: spec for spec in retrieval_specs}
+            winners = pick_winners(
+                ranking,
+                {spec.key: spec for spec in retrieval_specs},
+                config.rerank.top_configs,
+                config.rerank.diversify,
+            )
             rerank_specs = [
-                by_key[key].model_copy(
+                winner.model_copy(
                     update={"reranker": reranker, "candidates": config.rerank.candidates}
                 )
-                for key in winners
+                for winner in winners
                 for reranker in config.rerank.rerankers
             ]
+            rerank_questions = (
+                stratified_sample(by_source, config.rerank.questions, seed=config.seed)
+                if config.rerank.questions is not None
+                else questions
+            )
             summary.stages[RERANKING] = await self._retrieval_stage(
-                RERANKING, rerank_specs, corpus, questions
+                RERANKING, rerank_specs, corpus, rerank_questions
             )
             candidates += rerank_specs
-            ranking = await self._ranking([RETRIEVAL, RERANKING], questions)
+            # Reranked and plain configurations are compared on the questions both answered.
+            ranking = await self._ranking([RETRIEVAL, RERANKING], rerank_questions)
 
         if config.answer.generators:
-            by_key = {spec.key: spec for spec in candidates}
-            best = [by_key[key] for key, _ in ranking[: config.answer.top_configs]]
+            best = pick_winners(
+                ranking,
+                {spec.key: spec for spec in candidates},
+                config.answer.top_configs,
+                config.answer.diversify,
+            )
             answer_specs = [
                 spec.model_copy(update={"generator": generator, "top_k": config.answer.context_k})
                 for spec in best
                 for generator in config.answer.generators
             ]
-            by_source: dict[str, list[Question]] = {}
-            for question in questions:
-                by_source.setdefault(question.source, []).append(question)
             sample = stratified_sample(by_source, config.answer.questions, seed=config.seed)
             summary.stages[ANSWERS] = await self._answer_stage(answer_specs, corpus, sample)
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, ValidationError, model_validator
@@ -18,6 +19,7 @@ from ragbench.core.hashing import stable_hash
 from ragbench.core.types import SearchMode
 
 ENV_PREFIX = "RAGBENCH_"
+Diversify = Literal["none", "chunker"]
 _METRIC_PATTERN = re.compile(r"^[a-z_]+(@[1-9][0-9]*)?$")
 
 
@@ -124,6 +126,17 @@ class RerankConfig(_Model):
     )
     top_configs: int = Field(default=5, ge=1, description="Stage-1 winners carried over.")
     candidates: int = Field(default=30, ge=1, description="Passages sent to the reranker.")
+    questions: int | None = Field(
+        default=None,
+        ge=1,
+        description="Run the stage on a stratified subsample of this size; null uses every "
+        "question. Rerankers are billed per token, so this bounds the cost of the stage.",
+    )
+    diversify: Diversify = Field(
+        default="none",
+        description="'chunker' carries over the best configuration of each chunker instead of "
+        "the overall best ones, which are often near-duplicates.",
+    )
 
 
 class AnswerConfig(_Model):
@@ -136,6 +149,11 @@ class AnswerConfig(_Model):
         default=None, description="Required when generators are set."
     )
     top_configs: int = Field(default=3, ge=1, description="Retrieval winners carried over.")
+    diversify: Diversify = Field(
+        default="none",
+        description="'chunker' carries over the best configuration of each chunker instead of "
+        "the overall best ones, which often give the generator the same passages.",
+    )
     questions: int = Field(default=200, ge=1, description="Stratified subsample size.")
     context_k: int = Field(default=5, ge=1, description="Passages given to the generator.")
     validation_sample: int = Field(

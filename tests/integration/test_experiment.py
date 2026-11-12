@@ -300,3 +300,27 @@ def test_command_line_runs_reports_and_lists(
 
     runs = runner.invoke(app, ["runs"])
     assert run_id in runs.output
+
+
+async def test_reranking_can_run_on_a_subsample_with_one_winner_per_chunker(
+    database: Database,
+) -> None:
+    config = offline_config(
+        database,
+        "rerank.questions=6",
+        "rerank.top_configs=3",
+        "rerank.diversify=chunker",
+        "answer.diversify=chunker",
+        "answer.top_configs=2",
+    )
+    async with open_runtime(config) as runtime:
+        summary = await run_experiment(runtime)
+        report = await Report.load(runtime.results, summary.run_id)
+
+    assert summary.stages[RERANKING].configurations == 3
+    assert summary.stages[RERANKING].evaluated == 18  # 3 configurations x 6 questions
+    assert sorted(report.reranking["chunker"].to_list()) == ["context-header", "fixed", "recursive"]
+    assert report.reranking["questions"].to_list() == [6, 6, 6]
+    assert report.answers["chunker"].n_unique() == 2
+    gain = report.reranking.row(0, named=True)
+    assert gain["gain"] == pytest.approx(gain["char_recall@3"] - gain["base"]), "same 6 questions"
