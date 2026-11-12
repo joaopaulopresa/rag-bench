@@ -494,9 +494,9 @@ def _recommend(
         else:
             reason = (
                 f"Cheapest of the {tied.height} configurations whose correctness is not "
-                f"significantly below the best ({best['correctness']:.3f}): "
-                f"{chosen['correctness']:.3f} at ${chosen['cost_per_1k_answers_usd']:.2f} "
-                f"per 1,000 answers instead of ${best['cost_per_1k_answers_usd']:.2f}."
+                f"significantly below the best. It scores {chosen['correctness']:.3f} at "
+                f"${chosen['cost_per_1k_answers_usd']:.3f} per 1,000 answers; the best scores "
+                f"{best['correctness']:.3f} at ${best['cost_per_1k_answers_usd']:.3f}."
             )
         return Recommendation(chosen["config_key"], chosen["configuration"], ANSWERS, reason)
     frames = [
