@@ -47,19 +47,19 @@ code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: va
 .tile .value { font-size: 26px; font-weight: 650; line-height: 1.2; }
 .tile .note { font-size: 12px; color: var(--ink-2); }
 .scroll { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-size: 13.5px;
+table { border-collapse: collapse; width: 100%; font-size: 13px;
   font-variant-numeric: tabular-nums; }
-th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--grid);
+th, td { padding: 6px 6px; text-align: right; border-bottom: 1px solid var(--grid);
   white-space: nowrap; }
 th { color: var(--ink-2); font-weight: 600; border-bottom: 1px solid var(--axis); }
 th:first-child, td:first-child, th.text, td.text { text-align: left; }
-td.wrap { white-space: normal; min-width: 170px; max-width: 250px; }
+td.wrap { white-space: normal; min-width: 160px; max-width: 215px; }
 .heat th { white-space: normal; vertical-align: bottom; }
 tr.chosen td { font-weight: 650; }
 .rank { color: var(--muted); }
 .bar { display: flex; align-items: center; gap: 8px; justify-content: flex-start; }
 .bar i { display: block; height: 10px; border-radius: 0 4px 4px 0; background: var(--series-1); }
-.bar span { min-width: 44px; text-align: left; }
+.bar span { min-width: 40px; text-align: left; }
 .ci { color: var(--muted); font-size: 12px; }
 .tag { display: inline-block; font-size: 11.5px; padding: 0 7px; border-radius: 999px;
   border: 1px solid var(--axis); color: var(--ink-2); }
@@ -104,7 +104,7 @@ def _table(headers: Sequence[str], rows: Iterable[Sequence[str]], *, chosen: int
 
 
 def _bar(value: float, largest: float, low: object = None, high: object = None) -> str:
-    width = 0 if largest <= 0 else round(80 * value / largest)
+    width = 0 if largest <= 0 else round(64 * value / largest)
     interval = (
         "" if _missing(low) else f' <span class="ci">{_percent(low)} to {_percent(high)}</span>'
     )
@@ -365,7 +365,7 @@ def _answers_section(report: Report) -> str:
         "Cited = gold",
         "Gold retrieved",
         "$ / 1k answers",
-        "Latency p50 / p95",
+        "p50 / p95",
     ]
     return (
         "<h2>Stage 3 - Answers</h2>"
