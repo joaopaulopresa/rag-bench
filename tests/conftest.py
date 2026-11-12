@@ -19,8 +19,9 @@ from ragbench.core.config import ProviderConfig
 from ragbench.core.resources import Resources
 
 FIXTURES = Path(__file__).parent / "fixtures"
+# Not named RAGBENCH_*: every variable with that prefix is a configuration override.
 DATABASE_URL = os.environ.get(
-    "RAGBENCH_TEST_DATABASE_URL", "postgresql://ragbench:ragbench@localhost:54329/ragbench"
+    "TEST_DATABASE_URL", "postgresql://ragbench:ragbench@localhost:54329/ragbench"
 )
 
 Handler = Callable[[httpx.Request], httpx.Response]
