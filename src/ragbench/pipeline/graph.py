@@ -17,7 +17,7 @@ from ragbench.core.errors import ConfigError
 from ragbench.core.interfaces import Chunker, Embedder, Generator, Reranker, Store
 from ragbench.core.registries import chunkers, embedders, generators, rerankers
 from ragbench.core.resources import Resources
-from ragbench.core.types import NO_USAGE, Document, RetrievedChunk, Usage
+from ragbench.core.types import NO_USAGE, Document, Question, RetrievedChunk, Usage
 from ragbench.pipeline.indexing import IndexReport, build_index, index_name
 from ragbench.pipeline.prompts import build_answer_messages, cited_passages
 from ragbench.pipeline.retrievers import IndexRetriever
@@ -155,6 +155,10 @@ class Pipeline:
         return await build_index(
             self._store, self.index_name, documents, self._chunker, self._embedder
         )
+
+    async def relevant_keys(self, question: Question) -> frozenset[str]:
+        """Return the keys of every indexed passage that overlaps the question's gold spans."""
+        return await self._store.relevant_keys(self.index_name, question)
 
     async def answer(self, question: str) -> Answer:
         """Run the graph for ``question``.

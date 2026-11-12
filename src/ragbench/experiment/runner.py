@@ -31,9 +31,10 @@ from ragbench.core.registries import (
     rerankers,
 )
 from ragbench.core.resources import Resources
-from ragbench.core.types import Corpus, Question, RetrievalSample, Usage
+from ragbench.core.types import Corpus, Question, Usage
 from ragbench.experiment.runtime import Runtime
 from ragbench.experiment.stats import stratified_sample
+from ragbench.pipeline.evaluation import score_question
 from ragbench.pipeline.graph import Pipeline, build_pipeline
 
 RETRIEVAL, RERANKING, ANSWERS = 1, 2, 3
@@ -407,16 +408,14 @@ class Experiment:
             async def work(
                 question: Question, pipeline: Pipeline = pipeline
             ) -> tuple[dict[str, object], Usage]:
-                answer = await pipeline.retrieve(question.text)
-                relevant = await self._runtime.store.relevant_keys(pipeline.index_name, question)
-                sample = RetrievalSample(question, answer.chunks, relevant)
+                score = await score_question(pipeline, question, self._metrics)
                 data: dict[str, object] = {
-                    "metrics": {metric.name: metric.score(sample) for metric in self._metrics},
-                    "retrieved": [chunk.key for chunk in answer.chunks],
-                    "cost_usd": answer.usage.cost_usd,
-                    "latency_s": answer.usage.latency_s,
+                    "metrics": score.metrics,
+                    "retrieved": list(score.retrieved),
+                    "cost_usd": score.usage.cost_usd,
+                    "latency_s": score.usage.latency_s,
                 }
-                return data, answer.usage
+                return data, score.usage
 
             await self._evaluate(stage, spec, questions, summary, work)
         return summary
